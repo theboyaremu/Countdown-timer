@@ -1,32 +1,55 @@
-"use client";
+"use client"; 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import './welcomeStyles.css'; // Assuming styles are in the same folder
+import './styles.css'; // Assuming styles are in the same folder
 
 export default function WelcomePage() {
   const [userName, setUserName] = useState("");
+  const [userId, setUserId] = useState(""); // State to store the user ID
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [eventName, setEventName] = useState(""); // State for event name
+  const [eventDate, setEventDate] = useState(""); // State for event date
+  const [eventTime, setEventTime] = useState(""); // State for event time
   const router = useRouter();
 
   useEffect(() => {
     async function fetchUser() {
+      if (!userId) return; // Ensure userId is available before making the request
+  
       try {
-        const res = await fetch("/api/v1/user");
+        // Include userId in the URL
+        const res = await fetch(`http://localhost:3005/api/v1/user/${userId}`, {
+          headers: {
+            'userId': userId.toString() // Ensure userId is a string
+          }
+        });
+  
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+  
         const data = await res.json();
-        setUserName(data.name);
+        setUserName(data.username);
+        setUserId(data.userId.toString()); // Ensure userId is set as a string
+        console.log("Fetched user:", data.username);
       } catch (err) {
         console.error("Error fetching user:", err);
       }
     }
-
+  
     fetchUser();
-    fetchEvents();
-  }, []);
+  }, [userId]); 
+  
+  useEffect(() => {
+    if (userId) {
+      fetchEvents(userId); // Fetch events when userId is available
+    }
+  }, [userId]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (userId) => {
     try {
-      const res = await fetch("/api/v1/events");
+      const res = await fetch(`http://localhost:3005/api/v1/events?userId=${userId}`); // Include userId in the request
       const data = await res.json();
       setEvents(data.events);
     } catch (err) {
@@ -37,17 +60,26 @@ export default function WelcomePage() {
   const createEvent = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/events", {
+      const res = await fetch("http://localhost:3005/api/v1/create-event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title: "New Event" }),
+        body: JSON.stringify({ 
+          eventName, 
+          eventDate, 
+          eventTime, 
+          userId: userId.toString() // Ensure userId is sent as a string
+        }), // Include userId and other fields in the request body
       });
 
       if (res.ok) {
         const newEvent = await res.json();
         setEvents((prevEvents) => [...prevEvents, newEvent]);
+        // Clear the input fields after event creation
+        setEventName("");
+        setEventDate("");
+        setEventTime("");
       } else {
         console.error("Failed to create event");
       }
@@ -66,15 +98,40 @@ export default function WelcomePage() {
     <div className="welcome-container">
       <h1 className="welcome-header">Welcome, {userName}</h1>
 
-      <button onClick={createEvent} disabled={loading} className="create-event-btn">
-        {loading ? "Creating..." : "Create Event"}
-      </button>
+      {/* Input fields for creating an event */}
+      <div className="event-form">
+        <input
+          type="text"
+          placeholder="Event Name"
+          value={eventName}
+          onChange={(e) => setEventName(e.target.value)} // Update state on input change
+          required
+        />
+        <input
+          type="date"
+          value={eventDate}
+          onChange={(e) => setEventDate(e.target.value)} // Update state on input change
+          required
+        />
+        <input
+          type="time"
+          value={eventTime}
+          onChange={(e) => setEventTime(e.target.value)} // Update state on input change
+          required
+        />
+        <button onClick={createEvent} disabled={loading} className="create-event-btn">
+          {loading ? "Creating..." : "Create Event"}
+        </button>
+      </div>
 
       <h2 className="events-header">Your Events</h2>
       <ul className="events-list">
         {events.map((event) => (
           <li key={event.id} onClick={() => handleEventClick(event.id)} className="event-item">
-            {event.title}
+            <div className="event-title">{event.title}</div>
+            <div className="event-details">
+              {event.date} at {event.time} {/* Assuming event object has date and time properties */}
+            </div>
           </li>
         ))}
       </ul>

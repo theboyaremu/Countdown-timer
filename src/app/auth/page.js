@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import './styles.css';
 
 const SignUpLoginPage = () => {
@@ -8,6 +9,8 @@ const SignUpLoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
+
+    const router = useRouter(); // Initialize useRouter hook
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,11 +30,18 @@ const SignUpLoginPage = () => {
             const result = await response.json();
             if (response.ok) {
                 setMessage(`Success: ${result.message}`);
+
+                // Redirect to the welcome page after successful sign-up or login, including user ID in the URL
+                if (!isSignUp) {
+                    router.push(`/welcome?userId=${result.userId}`);
+                } else {
+                    router.push("/welcome");
+                }
             } else {
                 setMessage(`Error: ${result.message}`);
             }
         } catch (error) {
-            console.log(error)
+            console.log(error);
             setMessage(`Error: ${error.message}`);
         }
     };
