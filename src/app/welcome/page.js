@@ -12,16 +12,25 @@ export default function WelcomePage() {
   const [eventDate, setEventDate] = useState(""); // State for event date
   const [eventTime, setEventTime] = useState(""); // State for event time
   const router = useRouter();
+  
+  useEffect(() => {
+    // Extract userId from the query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const userIdFromURL = urlParams.get("userId");
+    
+    if (userIdFromURL) {
+      setUserId(userIdFromURL);
+    }
+  }, []); // Run this effect once on mount
 
   useEffect(() => {
     async function fetchUser() {
       if (!userId) return; // Ensure userId is available before making the request
   
       try {
-        // Include userId in the URL
         const res = await fetch(`http://localhost:3005/api/v1/user/${userId}`, {
           headers: {
-            'userId': userId.toString() // Ensure userId is a string
+            'Content-Type': 'application/json',
           }
         });
   
@@ -31,7 +40,6 @@ export default function WelcomePage() {
   
         const data = await res.json();
         setUserName(data.username);
-        setUserId(data.userId.toString()); // Ensure userId is set as a string
         console.log("Fetched user:", data.username);
       } catch (err) {
         console.error("Error fetching user:", err);
@@ -49,7 +57,7 @@ export default function WelcomePage() {
 
   const fetchEvents = async (userId) => {
     try {
-      const res = await fetch(`http://localhost:3005/api/v1/events?userId=${userId}`); // Include userId in the request
+      const res = await fetch(`http://localhost:3005/api/v1/events?{userId}`);
       const data = await res.json();
       setEvents(data.events);
     } catch (err) {
@@ -69,14 +77,13 @@ export default function WelcomePage() {
           eventName, 
           eventDate, 
           eventTime, 
-          userId: userId.toString() // Ensure userId is sent as a string
-        }), // Include userId and other fields in the request body
+          userId: parseInt(userId), // Ensure userId is a valid integer
+        }),
       });
-
+  
       if (res.ok) {
         const newEvent = await res.json();
-        setEvents((prevEvents) => [...prevEvents, newEvent]);
-        // Clear the input fields after event creation
+        setEvents((prevEvents) => [...prevEvents, newEvent.event]);
         setEventName("");
         setEventDate("");
         setEventTime("");
@@ -104,19 +111,19 @@ export default function WelcomePage() {
           type="text"
           placeholder="Event Name"
           value={eventName}
-          onChange={(e) => setEventName(e.target.value)} // Update state on input change
+          onChange={(e) => setEventName(e.target.value)}
           required
         />
         <input
           type="date"
           value={eventDate}
-          onChange={(e) => setEventDate(e.target.value)} // Update state on input change
+          onChange={(e) => setEventDate(e.target.value)}
           required
         />
         <input
           type="time"
           value={eventTime}
-          onChange={(e) => setEventTime(e.target.value)} // Update state on input change
+          onChange={(e) => setEventTime(e.target.value)}
           required
         />
         <button onClick={createEvent} disabled={loading} className="create-event-btn">
@@ -128,9 +135,9 @@ export default function WelcomePage() {
       <ul className="events-list">
         {events.map((event) => (
           <li key={event.id} onClick={() => handleEventClick(event.id)} className="event-item">
-            <div className="event-title">{event.title}</div>
+            <div className="event-title">{event.eventName}</div>
             <div className="event-details">
-              {event.date} at {event.time} {/* Assuming event object has date and time properties */}
+              {event.eventDate} at {event.eventTime}
             </div>
           </li>
         ))}
