@@ -1,4 +1,4 @@
-// File: /home/juwon/projects/Countdown-timer/src/app/layout.js
+// File: C:\Users\Mr. Lekan\OneDrive\Documents\GitHub\Countdown-timer\src\app\layout.js
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

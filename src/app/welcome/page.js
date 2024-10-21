@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import './styles.css'; // Assuming styles are in the same folder
@@ -12,32 +12,34 @@ export default function WelcomePage() {
   const [eventDate, setEventDate] = useState(""); // State for event date
   const [eventTime, setEventTime] = useState(""); // State for event time
   const router = useRouter();
-  
+
+  // Extract userId from the URL when component mounts
   useEffect(() => {
-    // Extract userId from the query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const userIdFromURL = urlParams.get("userId");
-    
+
     if (userIdFromURL) {
       setUserId(userIdFromURL);
     }
   }, []); // Run this effect once on mount
 
+  // Fetch user details when userId is available
   useEffect(() => {
     async function fetchUser() {
+      console.log(userId); // Log the userId for debugging
       if (!userId) return; // Ensure userId is available before making the request
-  
+
       try {
         const res = await fetch(`http://localhost:3005/api/v1/user/${userId}`, {
           headers: {
             'Content-Type': 'application/json',
-          }
+          },
         });
-  
+
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-  
+
         const data = await res.json();
         setUserName(data.username);
         console.log("Fetched user:", data.username);
@@ -45,19 +47,21 @@ export default function WelcomePage() {
         console.error("Error fetching user:", err);
       }
     }
-  
+
     fetchUser();
-  }, [userId]); 
-  
+  }, [userId]);
+
+  // Fetch events when userId is available
   useEffect(() => {
     if (userId) {
-      fetchEvents(userId); // Fetch events when userId is available
+      fetchEvents(userId);
     }
   }, [userId]);
 
+  // Function to fetch events for the user
   const fetchEvents = async (userId) => {
     try {
-      const res = await fetch(`http://localhost:3005/api/v1/events?{userId}`);
+      const res = await fetch(`http://localhost:3005/api/v1/events?userId=${userId}`);
       const data = await res.json();
       setEvents(data.events);
     } catch (err) {
@@ -65,28 +69,36 @@ export default function WelcomePage() {
     }
   };
 
+  // Function to create a new event with validation
   const createEvent = async () => {
+    if (!eventTime) {
+      alert("Please select a time for the event.");
+      return;
+    }
+
     setLoading(true);
+    console.log("Creating event with time:", eventTime); // Log eventTime for debugging
+
     try {
       const res = await fetch("http://localhost:3005/api/v1/create-event", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          eventName, 
-          eventDate, 
-          eventTime, 
+        body: JSON.stringify({
+          eventName,
+          eventDate,
+          eventTime,
           userId: parseInt(userId), // Ensure userId is a valid integer
         }),
       });
-  
+
       if (res.ok) {
         const newEvent = await res.json();
         setEvents((prevEvents) => [...prevEvents, newEvent.event]);
         setEventName("");
         setEventDate("");
-        setEventTime("");
+        setEventTime(""); // Clear input fields after successful creation
       } else {
         console.error("Failed to create event");
       }
@@ -97,6 +109,7 @@ export default function WelcomePage() {
     }
   };
 
+  // Function to handle clicking on an event
   const handleEventClick = (eventId) => {
     router.push(`/countdown/${eventId}`);
   };
@@ -123,7 +136,10 @@ export default function WelcomePage() {
         <input
           type="time"
           value={eventTime}
-          onChange={(e) => setEventTime(e.target.value)}
+          onChange={(e) => {
+            console.log("Event Time Selected:", e.target.value); // Log the time to ensure it's captured
+            setEventTime(e.target.value);
+          }}
           required
         />
         <button onClick={createEvent} disabled={loading} className="create-event-btn">
