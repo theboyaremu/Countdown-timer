@@ -8,7 +8,7 @@ node_modules/
 .next/
 out/
 .next/cache
-
+.next/
 # Static files
 public/static/
 
