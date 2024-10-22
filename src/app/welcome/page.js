@@ -42,7 +42,6 @@ export default function WelcomePage() {
 
         const data = await res.json();
         setUserName(data.username);
-        console.log("Fetched user:", data.username);
       } catch (err) {
         console.error("Error fetching user:", err);
       }
@@ -61,9 +60,9 @@ export default function WelcomePage() {
   // Function to fetch events for the user
   const fetchEvents = async (userId) => {
     try {
-      const res = await fetch(`http://localhost:3005/api/v1/events?userId=${userId}`);
+      const res = await fetch(`http://localhost:3005/api/v1/events/${userId}`);
       const data = await res.json();
-      setEvents(data.events);
+      setEvents(data.events || []); // Fallback to empty array if events are undefined
     } catch (err) {
       console.error("Error fetching events:", err);
     }
@@ -85,10 +84,10 @@ export default function WelcomePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          eventName,
-          eventDate,
-          eventTime,
+        body: JSON.stringify({ 
+          eventName, 
+          eventDate, 
+          eventTime, 
           userId: parseInt(userId), // Ensure userId is a valid integer
         }),
       });
@@ -149,14 +148,18 @@ export default function WelcomePage() {
 
       <h2 className="events-header">Your Events</h2>
       <ul className="events-list">
-        {events.map((event) => (
-          <li key={event.id} onClick={() => handleEventClick(event.id)} className="event-item">
-            <div className="event-title">{event.eventName}</div>
-            <div className="event-details">
-              {event.eventDate} at {event.eventTime}
-            </div>
-          </li>
-        ))}
+        {events && events.length > 0 ? (
+          events.map((event) => (
+            <li key={event.id} onClick={() => handleEventClick(event.id)} className="event-item">
+              <div className="event-title">{event.eventName}</div>
+              <div className="event-details">
+                {event.eventDate} at {event.eventTime}
+              </div>
+            </li>
+          ))
+        ) : (
+          <p>No events available. Please create one!</p>
+        )}
       </ul>
     </div>
   );

@@ -1,4 +1,4 @@
-// File: C:\Users\Mr. Lekan\OneDrive\Documents\GitHub\Countdown-timer\src\app\page.js
+// File: /home/juwon/projects/Countdown-timer/src/app/page.js
 import * as entry from '../../../src/app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

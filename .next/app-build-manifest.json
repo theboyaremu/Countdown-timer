@@ -17,12 +17,6 @@
       "static/chunks/main-app.js",
       "static/css/app/page.css",
       "static/chunks/app/page.js"
-    ],
-    "/countdown/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/countdown/[id]/page.css",
-      "static/chunks/app/countdown/[id]/page.js"
     ]
   }
 }
